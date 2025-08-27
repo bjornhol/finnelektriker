@@ -16,6 +16,19 @@ interface BrregEnhet {
   antallAnsatte: string;
 }
 
+function getWebAddressFromEmail(email: string): string | undefined {
+  if (!email || typeof email !== 'string') {
+    return undefined;
+  }
+  
+  const atIndex = email.lastIndexOf('@');
+  if (atIndex === -1 || atIndex === email.length - 1) {
+    return undefined;
+  }
+  
+  return `https://${email.substring(atIndex + 1).toLowerCase().trim()}`;
+}
+
 export const handler: Handlers = {
   async GET(req, ctx) {
     return await ctx.render({ results: [], query: "" });
@@ -48,6 +61,8 @@ export const handler: Handlers = {
   },
 };
 
+
+
 export default function Greatest(
   props: PageProps<{ results: BrregEnhet[]; query: string }>
 ) {
@@ -76,20 +91,29 @@ export default function Greatest(
           <ul class="divide-y divide-gray-200">
             {suggestions.map((item) => (
               <li class="p-4" key={item.navn}>
-                <p class="text-lg font-medium text-gray-900">{item.navn}</p>
+                <p class="text-lg font-medium text-gray-900">
+                    {item.epostadresse && (
+                      <a class="text-blue-500 hover:underline" href={getWebAddressFromEmail(item.epostadresse)} target="_blank" rel="noopener noreferrer">
+                        {item.navn}
+                      </a>
+                    )}
+                    {!item.epostadresse && (
+                      <>{item.navn}</>
+                    )}
+                </p>
                 <span class="text-sm">
                   {item.forretningsadresse.adresse},{" "}
                   {item.forretningsadresse.postnummer}{" "}
                   {item.forretningsadresse.kommune}
                 </span>
-                <span class="py-2 flex items-center">
+                {item.telefon && (<span class="py-2 flex items-center">
                   <img src="/phone.svg" width="24" height="24" />
                   <span class="px-2 font-bold">{item.telefon}</span>
-                </span>
-                <span class="py-2 flex items-center">
+                </span>)}
+                {item.epostadresse && (<span class="py-2 flex items-center">
                   <img src="/email.svg" width="24" height="24" />
                   <span class="px-2 font-bold">{item.epostadresse}</span>
-                </span>
+                </span>)}
               </li>
             ))}
           </ul>
